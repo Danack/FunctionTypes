@@ -20,7 +20,7 @@ function foo(logger $logger) {
 
 ```
 
-Although they are not used in the definition of a function type, the parameter names are required to allow function type to be compatible with calling by named parameters.
+Although they are not used in the definition of a function type, the parameter names are required in the function type definition, to allow function types to be compatible with calling by named parameters.
 
 ## Function type + autoloading
 
