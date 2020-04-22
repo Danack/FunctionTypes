@@ -20,7 +20,7 @@ function foo(logger $logger) {
 
 ```
 
-Although they are not used in the definition of a function type, the parameter names are required in the function type definition, to allow function types to be compatible with calling by named parameters.
+Although they are not used in the definition of a function type, the parameter names are required in the function type definition, to allow function types to be compatible with calling by named parameters. See note on 'syntax choice'.
 
 ## Function type + autoloading
 
@@ -146,6 +146,26 @@ Yes/No
 
 ## Notes
 
+### Syntax choice
+
+The syntax chosen is designed to be reusable for other potential features e.g. 
+
+
+Enum types
+```
+typedef direction = enum('North', 'South', 'East', 'West');
+```
+
+Union types
+```
+typedef ExpectedExceptions = S3Exception|ImagickException|BadArgumentException;
+```
+
+Generic like definitions
+```
+typedef ArrayOfStrings =  array<string>;
+```
+
 ### 'property vs method'
 
 Fixing the problem of properties and methods being confusable, i.e. requiring ()'s for this:
@@ -159,6 +179,8 @@ class Foo {
 ```
 
 is ugly. But fixing that is outside the scope of this RFC, unless someone can say a clearly genius solution.
+
+
 
 
 ## No implements
