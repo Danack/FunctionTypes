@@ -13,7 +13,6 @@ AUTOLOAD_STREAM = 8 - Represents stream autoloading
 
 
 
-
 ## Future scope
 
 ### Other types
@@ -39,5 +38,5 @@ function foo(Compass $direction) { ... }
 
 ```                                           
 
-And we execute the file app.php. When the engine compiles the function 'foo' it can't tell of 'Compass' is a class type, function type, or enum type.  
+And we execute the file app.php. When the engine compiles the function 'foo' it can't tell of 'Compass' is a class type, function type, or enum type. Because of that the  
 
