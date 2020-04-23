@@ -226,7 +226,9 @@ $badClosure = (int $x) => "foo";
 uses_returns_int($badClosure);
 ```
 
-i.e. that code behaves as if it was wrapped by an intermediate function that has the same parameters as the callable, but the return type of the callable type.
+i.e. that code behaves as if it was wrapped by an intermediate function that has the same parameters as the callable (cf. variance), and the return type of the callable type.
+
+Example where the callable has compatible parameters: 
 ```
 function wraps_and_returns_int($callable) {
     return (int $x): int {
@@ -238,6 +240,30 @@ $closureWithoutReturnType = (int $x) => 5;
 uses_returns_int(wraps_and_returns_int($closureWithoutReturnType);
 
 ```
+
+
+Example where the callable incompatible parameters:
+```
+// Define a callable type that must return int
+typedef consumes_string_returns_int = callable(string $x): int
+
+$badClosure = (array $x) => 5;
+
+function wraps_and_returns_int($callable) {
+    // Parameter type from callable
+    // Return type from 'callable type'
+    return (array $x): int {
+        $callable();
+    };
+}
+
+// This would give a type error, as a function that takes a
+// parameter with type 'array' is not compatible with one that 
+// takes 'int'.
+uses_returns_int(wraps_and_returns_int($badClosure);
+```
+
+
 
 Note, the 'wrapping' function is there for explanation purposes. It would not appear in the callstack.
 
