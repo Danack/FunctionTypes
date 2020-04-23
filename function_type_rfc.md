@@ -12,7 +12,6 @@ typedef logger = callable(string $message): void;
 
 This can be used a parameter, return or property type.
 
-
 ```
 function foo(logger $logger) {
     $logger("This was called");
@@ -21,6 +20,12 @@ function foo(logger $logger) {
 ```
 
 Although they are not used in the definition of a callable type, the parameter names are required in the callable type definition, to allow callable types to be compatible with calling by named parameters. See note on 'syntax choice'.
+
+
+To make the rest of the RFC clearer:
+
+* callable type - the definition of the signature. This is analogous to an interface.
+* callable - the function, closure, or class that implements the callable type.
 
 ## callable type + autoloading
 
@@ -144,7 +149,7 @@ The callables that are used where a callable type is expected, have their signat
 
 ### Parameter types
 
-For all callables, the parameters are checked with contravariance (aka type widening) for parameter types to obey the LSP principle. An function may use 'wider' aka less specific type in place of the type for a parameter in the function defintion.
+For all callables, the parameters are checked with contravariance (aka type widening) for parameter types to obey the LSP principle. An callable may use 'wider' aka less specific type in place of the type for a parameter in the function defintion.
 
 
 ```
@@ -172,7 +177,7 @@ uses_foo('baz');
 
 ### Return type check for callables with defined return types
 
-For callables that have a return type defined, PHP allows covariance (aka type narrowing) for return types to obey the LSP principle. A function may use a 'narrower' aka more specific type in place of the type for a function return.
+For callables that have a return type defined, PHP allows covariance (aka type narrowing) for return types to obey the LSP principle. A callable may use a 'narrower' aka more specific type in place of the type for a function return.
 
 
 ```
