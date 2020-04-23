@@ -45,48 +45,6 @@ Fatal error: Uncaught Error: Type 'foo' not found in
 The full details of the changes needed for the autoloader are in a separate document.
 
 
-## Type checking
-
-The type checking is done solely through the signature of the callable type. The function name is not required to be the same and functions do not need to declare what callable type they 'implement'.
-
-```
-typedef logger = callable(string $message): void;
-
-function foo(logger $logger) {
-    $logger("This was called");
-}
-
-
-function echologger(string $message) {
-  echo $message;
-}
-
-$closurelogger = function (string $message) {
-  echo $message;
-}
-
-class Staticlogger {
-  static function log(string $message) {
-    echo $message;
-  } 
-}
-
-class Instancelogger {
-  function log(string $message) {
-    echo $message;
-  } 
-}
-
-// These are all fine.
-foo('echologger');
-foo($closurelogger);
-foo('Staticlogger::log');
-foo([new Instancelogger, 'log']);
-
-```
-
-The rationalisation for this is that trying attach 'implements' information to a function or closure would be quite verbose, and make a very difficult developer experience. See 'no implements' note below.
-
 ## Using callable types directly
 
 It is possible to use a callable type directly.
@@ -143,9 +101,51 @@ As a second step, the autoloader would be called with the type AUTOLOAD_FUNCTION
 The bindCallableToFunction does a signature check on the implementing function to make sure it is LSP compatible with the callable type.  
 
 
-## Signature checking
 
-The callables that are used where a callable type is expected, have their signature checked according to the following rules.
+## Type checking
+
+The type checking is done solely through the signature of the callable type. The function name is not required to be the same and functions do not need to declare what callable type they 'implement'.
+
+```
+typedef logger = callable(string $message): void;
+
+function foo(logger $logger) {
+    $logger("This was called");
+}
+
+
+function echologger(string $message) {
+  echo $message;
+}
+
+$closurelogger = function (string $message) {
+  echo $message;
+}
+
+class Staticlogger {
+  static function log(string $message) {
+    echo $message;
+  } 
+}
+
+class Instancelogger {
+  function log(string $message) {
+    echo $message;
+  } 
+}
+
+// These are all fine.
+foo('echologger');
+foo($closurelogger);
+foo('Staticlogger::log');
+foo([new Instancelogger, 'log']);
+
+```
+
+The rationalisation for this is that trying attach 'implements' information to a function or closure would be quite verbose, and make a very difficult developer experience. See 'no implements' note below.
+
+
+The signature checking is done according to the following rules.
 
 ### Parameter types
 
@@ -172,7 +172,6 @@ function baz(array $value): {...}
 uses_foo('baz');
 
 ```
-
 
 
 ### Return type check for callables with defined return types
@@ -207,8 +206,6 @@ uses_foo('baz');
 ### Return type check for callables without defined return types.
 
 For callables that do not have a return type defined, the function is dispatched as if it was wrapped in a function that takes the same parameters as the callable, and the return type of callable type where it is being used. 
-
-
 
 ```
 // Define a callable type that must return int
