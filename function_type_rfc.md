@@ -209,7 +209,7 @@ For callables that do not have a return type defined, the function is dispatched
 
 ```
 // Define a callable type that must return int
-typedef returns_int = callable(): int
+typedef returns_int = callable(int $x): int
 
 // Use that type 
 function uses_returns_int(returns_int $fn) {...}
@@ -217,26 +217,24 @@ function uses_returns_int(returns_int $fn) {...}
 
 // This is allowed, but the type returned is checked
 // against the int type.
-$closureWithoutReturnType = () => 5;
+$closureWithoutReturnType = (int $x) => 5;
 uses_returns_int($closureWithoutReturnType);
 
 
 // This will give a type error
-$badClosure = () => "foo";
+$badClosure = (int $x) => "foo";
 uses_returns_int($badClosure);
-
-
 ```
 
 i.e. that code behaves as if it was wrapped by an intermediate function that has the same parameters as the callable, but the return type of the callable type.
 ```
 function wraps_and_returns_int($callable) {
-    return (): int {
+    return (int $x): int {
         $callable();
     };
 }
 
-$closureWithoutReturnType = () => 5;
+$closureWithoutReturnType = (int $x) => 5;
 uses_returns_int(wraps_and_returns_int($closureWithoutReturnType);
 
 ```
