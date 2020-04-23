@@ -164,7 +164,7 @@ function bar(int|string $value): {...}
 uses_foo('bar');
 
 // This is also fine.
-$closure = function (int|string $value): {...}
+$closure = function (int|string $value): {...};
 uses_foo($closure);
 
 // this is not fine
@@ -193,7 +193,7 @@ uses_foo('bar');
 
 
 // This is also fine.
-$closure = function (): int {...}
+$closure = function (): int {...};
 uses_foo($closure);
 
 // this is not fine
@@ -217,12 +217,12 @@ function uses_returns_int(returns_int $fn) {...}
 
 // This is allowed, but the type returned is checked
 // against the int type.
-$closureWithoutReturnType = (int $x) => 5;
+$closureWithoutReturnType = fn(int $x) => 5;
 uses_returns_int($closureWithoutReturnType);
 
 
 // This will give a type error
-$badClosure = (int $x) => "foo";
+$badClosure = fn(int $x) => "foo";
 uses_returns_int($badClosure);
 ```
 
@@ -231,12 +231,12 @@ i.e. that code behaves as if it was wrapped by an intermediate function that has
 Example where the callable has compatible parameters: 
 ```
 function wraps_and_returns_int($callable) {
-    return (int $x): int {
+    return function(int $x): int {
         $callable();
     };
 }
 
-$closureWithoutReturnType = (int $x) => 5;
+$closureWithoutReturnType = fn(int $x) => 5;
 uses_returns_int(wraps_and_returns_int($closureWithoutReturnType);
 
 ```
@@ -247,12 +247,12 @@ Example where the callable incompatible parameters:
 // Define a callable type that must return int
 typedef consumes_string_returns_int = callable(string $x): int
 
-$badClosure = (array $x) => 5;
+$badClosure = fn(array $x) => 5;
 
 function wraps_and_returns_int($callable) {
     // Parameter type from callable
     // Return type from 'callable type'
-    return (array $x): int {
+    return function(array $x): int {
         $callable();
     };
 }
