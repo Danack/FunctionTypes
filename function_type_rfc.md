@@ -209,7 +209,7 @@ For callables that do not have a return type defined, the function is dispatched
 
 ```
 // Define a callable type that must return int
-typedef returns_int = callable(int $x): int
+typedef returns_int = callable(): int
 
 // Use that type 
 function uses_returns_int(returns_int $fn) {...}
