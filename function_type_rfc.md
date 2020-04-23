@@ -323,7 +323,7 @@ e.g.
 ```
 
 // I have this definition:
-typedef logger = callable(string ): void;
+typedef logger = callable(string $message): void;
 
 
 // And this function:
