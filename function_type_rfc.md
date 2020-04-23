@@ -215,11 +215,15 @@ typedef returns_int = callable(int $x): int
 function uses_returns_int(returns_int $fn) {...}
 
 
-
 // This is allowed, but the type returned is checked
 // against the int type.
 $closureWithoutReturnType = () => 5;
 uses_returns_int($closureWithoutReturnType);
+
+
+// This will give a type error
+$badClosure = () => "foo";
+uses_returns_int($badClosure);
 
 
 ```
