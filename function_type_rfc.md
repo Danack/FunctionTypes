@@ -1,10 +1,10 @@
 
-# Function types
+# Callable types
 
-The problem of defining callable signatures has been a requested feature for a while. This proposal introduces the definition of function types, to separate the problem of definining function signatures from how they are used.
+The problem of defining callable signatures has been a requested feature for a while. This proposal introduces the definition of callable types, to separate the problem of definining function signatures from how they are used.
 
 
-## Allow definition of a function type
+## Allow definition of a callable type
 
 ```
 typedef logger = callable(string $message): void;
@@ -20,13 +20,13 @@ function foo(logger $logger) {
 
 ```
 
-Although they are not used in the definition of a function type, the parameter names are required in the function type definition, to allow function types to be compatible with calling by named parameters. See note on 'syntax choice'.
+Although they are not used in the definition of a callable type, the parameter names are required in the callable type definition, to allow callable types to be compatible with calling by named parameters. See note on 'syntax choice'.
 
-## Function type + autoloading
+## callable type + autoloading
 
-When a function type is used as a parameter, return or property type and that type is not already loaded, the autoloader is called. If the function type is failed to be loaded, an error message would be shown. 
+When a callable type is used as a parameter, return or property type and that type is not already loaded, the autoloader is called. If the callable type is failed to be loaded, an error message would be shown. 
 
-Note because it's not possible to tell the different between a class type and function type, the error message for failure to load a symbol should be changed from: 
+Note because it's not possible to tell the different between a class type and callable type, the error message for failure to load a symbol should be changed from: 
 
 ```
 Fatal error: Uncaught Error: Class 'foo' not found in
@@ -42,7 +42,7 @@ The full details of the changes needed for the autoloader are in a separate docu
 
 ## Type checking
 
-The type checking is done solely through the signature of the method. The function name is not required to be the same and functions do not need to declare what function type they 'implement'.
+The type checking is done solely through the signature of the callable type. The function name is not required to be the same and functions do not need to declare what callable type they 'implement'.
 
 ```
 typedef logger = callable(string $message): void;
@@ -82,9 +82,9 @@ foo([new Instancelogger, 'log']);
 
 The rationalisation for this is that trying attach 'implements' information to a function or closure would be quite verbose, and make a very difficult developer experience. See 'no implements' note below.
 
-## Using function types directly
+## Using callable types directly
 
-It is possible to use a function type directly.
+It is possible to use a callable type directly.
 
 ```
 // App.php
@@ -130,12 +130,112 @@ autoload_register(simpleFunctionLoader, AUTOLOAD_FUNCTION);
 
 ```
 
-When calling 'bar' and the PHP engine reached the line, the autoloader would be first be called with the AUTOLOAD_TYPE and the name 'logger'. This would define the function type 'logger'.
+When calling 'bar' and the PHP engine reached the line, the autoloader would be first be called with the AUTOLOAD_TYPE and the name 'logger'. This would define the callable type 'logger'.
 
 
-As a second step, the autoloader would be called with the type AUTOLOAD_FUNCTION and the name 'logger'. This would define the implmentation for the 'logger'.
+As a second step, the autoloader would be called with the type AUTOLOAD_FUNCTION and the name 'logger'. This would load the implmentation for the 'logger'.
 
-The bindCallableToFunction does a signature check on the implementing function to make sure it is LSP compatible with the function type.  
+The bindCallableToFunction does a signature check on the implementing function to make sure it is LSP compatible with the callable type.  
+
+
+## Signature checking
+
+The callables that are used where a callable type is expected, have their signature checked according to the following rules.
+
+### Parameter types
+
+For all callables, the parameters are checked with contravariance (aka type widening) for parameter types to obey the LSP principle. An function may use 'wider' aka less specific type in place of the type for a parameter in the function defintion.
+
+
+```
+// Define a callable type
+typdef foo = callable(int $value): void;
+
+// Use that type 
+function uses_foo(foo $fn) {...}
+
+// This is fine.
+function bar(int|string $value): {...}
+uses_foo('bar');
+
+// This is also fine.
+$closure = function (int|string $value): {...}
+uses_foo($closure);
+
+// this is not fine
+function baz(array $value): {...}
+uses_foo('baz');
+
+```
+
+
+
+### Return type check for callables with defined return types
+
+For callables that have a return type defined, PHP allows covariance (aka type narrowing) for return types to obey the LSP principle. A function may use a 'narrower' aka more specific type in place of the type for a function return.
+
+
+```
+// Define a callable type
+typdef foo = callable(): int|string;
+
+// Use that type 
+function uses_foo(foo $fn) {...}
+
+
+// This is fine.
+function bar(): int: {...}
+uses_foo('bar');
+
+
+// This is also fine.
+$closure = function (): int {...}
+uses_foo($closure);
+
+// this is not fine
+function baz(): array {...}
+uses_foo('baz');
+
+```
+
+
+### Return type check for callables without defined return types.
+
+For callables that do not have a return type defined, the function is dispatched as if it was wrapped in a function that takes the same parameters as the callable, and the return type of callable type where it is being used. 
+
+
+
+```
+// Define a callable type that must return int
+typedef returns_int = callable(int $x): int
+
+// Use that type 
+function uses_returns_int(returns_int $fn) {...}
+
+
+
+// This is allowed, but the type returned is checked
+// against the int type.
+$closureWithoutReturnType = () => 5;
+uses_returns_int($closureWithoutReturnType);
+
+
+```
+
+i.e. that code behaves as if it was wrapped by an intermediate function that has the same parameters as the callable, but the return type of the callable type.
+```
+function wraps_and_returns_int($callable) {
+    return (): int {
+        $callable();
+    };
+}
+
+$closureWithoutReturnType = () => 5;
+uses_returns_int(wraps_and_returns_int($closureWithoutReturnType);
+
+```
+
+Note, the 'wrapping' function is there for explanation purposes. It would not appear in the callstack.
 
 
 ## Voting choices
@@ -186,7 +286,7 @@ is ugly. But fixing that is outside the scope of this RFC, unless someone can sa
 ## No implements
 
 
-If we required functions to declare what function types they implement it would result in lots of 'hoisting' code.
+If we required functions to declare what callable types they implement it would result in lots of 'hoisting' code.
 
 e.g. 
 
