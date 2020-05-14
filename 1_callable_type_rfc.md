@@ -151,7 +151,7 @@ i.e. that code behaves as if it was wrapped by an intermediate function that has
 Example where the callable has compatible parameters: 
 ```
 function wraps_and_returns_int($callable) {
-    return function(int $x): int {
+    return function(int $x): int use ($callable) {
         $callable($x);
     };
 }

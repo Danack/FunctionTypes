@@ -3,7 +3,7 @@
 declare(strict_types = 1);
 
 // Define a callable type
-typedef consumes_int = callable(int);
+typedef consumes_int = callable(int $x);
 
 $widerClosure = function(int|string $value) {
     if (is_int($value) !== true && is_string($value) !== true) {

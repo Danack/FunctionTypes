@@ -26,5 +26,4 @@ echo "Ok";
 // This will give a type error
 $badClosure = fn(int $x) => "foo";
 uses_returns_int($badClosure);
-
 // Expect "Cannot use closure as incompatible
