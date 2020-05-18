@@ -22,8 +22,8 @@ Although they are not used in the definition of a callable type, the parameter n
 
 To make the rest of the RFC clearer:
 
-* callable type - the definition of the signature. This is analogous to an interface.
-* callable - the function, closure, or class+method that implements the callable type.
+* 'callable type' - the definition of the signature. This is analogous to an interface.
+* 'callable' - the function, closure, or class+method that implements the callable type.
 
 
 ## Type checking
@@ -65,9 +65,6 @@ foo([new Instancelogger, 'log']);
 
 ```
 
-
-
-
 ### Parameter types
 
 For all callables, the parameters are checked with contravariance (aka type widening) for parameter types to obey the LSP principle. An callable may use 'wider' aka less specific type in place of the type for a parameter in the function defintion.
@@ -93,7 +90,6 @@ function baz(array $value): {...}
 uses_foo('baz');
 
 ```
-
 
 ### Return type check for callables with defined return types
 
@@ -130,72 +126,61 @@ For callables that do not have a return type defined, the function is dispatched
 
 ```
 // Define a callable type that must return int
-typedef returns_int = callable(int $x): int
-
-// Use that type 
-function uses_returns_int(returns_int $fn) {...}
-
-// This is allowed, but the type returned is checked
-// against the int type.
-$closureWithoutReturnType = fn(int $x) => 5;
-uses_returns_int($closureWithoutReturnType);
-
-
-// This will give a type error
-$badClosure = fn(int $x) => "foo";
-uses_returns_int($badClosure);
-```
-
-i.e. that code behaves as if it was wrapped by an intermediate function that has the same parameters as the callable (cf. variance), and the return type of the callable type.
-
-Example where the callable has compatible parameters: 
-```
-function wraps_and_returns_int($callable) {
-    return function(int $x): int use ($callable) {
-        $callable($x);
-    };
-}
-
-$closureWithoutReturnType = fn(int $x) => 5;
-uses_returns_int(wraps_and_returns_int($closureWithoutReturnType);
-
-```
-
-
-Example where the callable has incompatible parameters:
-```
-// Define a callable type that must return int
 typedef consumes_string_returns_int = callable(string $x): int
 
-$badClosure = fn(array $x) => 5;
+$returnStringClosure = fn(string $x) => 5;
 
 function wraps_and_returns_int($callable) {
     // Parameter type from callable
     // Return type from 'callable type'
-    return function(array $x): int {
-        $callable();
+    return function(string $x): int {
+        return $callable($x);
     };
 }
 
-// This would give a type error, as a function that takes a
-// parameter with type 'array' is not compatible with one that 
-// takes 'int'.
 uses_returns_int(wraps_and_returns_int($badClosure);
 ```
 
+Note, the 'wrapping' function is there as a userland equivalent explanation. It would not appear in the callstack for the internal implementation of callable types.
+
+The purpose of the wrapping function is to make the return type check happen in the correct place, without requiring programmers to manually wrap all short closures or other functions that lack return types.
+
+
+#### Example focusing on return type checking
+
+```
+// Define a callable type that must return int
+typedef returns_int = callable(): int
+
+$returnStringClosure = fn() => "foo";
+
+function wraps_and_returns_int($callable) {
+    // Parameter types from 'callable', or no parameters in this case
+    // Return type from 'callable type'
+    return function(): int {
+        // This would give a type error when the code is run
+        // as the callable is returning a string, not an int.
+        return $callable();
+    };
+}
+
+uses_returns_int(wraps_and_returns_int($returnStringClosure);
+```
+
 Note, the 'wrapping' function is there for explanation purposes. It would not appear in the callstack.
+
+
+#### Example showing parameter type checking
 
 The type check on the parameters uses the allowed parameters of the callable being used, not the parameters allowed of the callable type, to make the error message match the code.
 
 ```
 // Define a callable type
-typedef consumes_int = callable(int);
+typedef consumes_int = callable(int $x): int;
 
 // Define a closure that accepts int or string
-$widerClosure = function(int|string $value) {
-    if (is_int($value) !== true && is_string($value) !== true) {
-        echo "Error: function parameter is not int or string but " . gettype($value);
-    }
+$widerClosure = function(int|string $value): int {
+    // 
 };
 
 // Use that type
@@ -203,11 +188,26 @@ function uses_consumes_int($value, consumes_int $fn) {
     $value = $fn($value);
 }
 
-uses_consumes_int([], $widerClosure);
-// Expect error, "Cannot pass array int|string expected"
+function wraps_consumes_int_and_returns_int($callable) {
+    // Parameter types from 'callable'
+    // Return type from 'callable type'
+    return function(int|string $value): int {
+        return $callable($value);
+    };
+}
+
+// This would work
+uses_consumes_int(5, wraps_consumes_int_and_returns_int($widerClosure));
+
+// This would give a type error when the code is run
+// an array is not an acceptable parameter.
+uses_consumes_int([], wraps_consumes_int_and_returns_int($widerClosure));
+
+
 ```
 
-Doing it the other way, and using the allowed parameters of the callable type would lead to a confusing error message, as it wouldn't match the callable that is actually being used.
+Doing it the other way, and using the allowed parameter types of the callable type would lead to a confusing error message, as it wouldn't match the callable that is actually being used.
+
 
 ## Voting choices
 
@@ -306,7 +306,7 @@ function echologger(string $message) {
   echo $message;
 }
 
-// If I need to declar the implements it would need to look something like
+// If I need to declare the implements it would need to look something like
 function decoratedEchologger implements logger(string $message) {
   return echologger($message);
 }
