@@ -358,6 +358,8 @@ Which is too verbose.
 
 ### Notes
 
+Based on work by Nikita Nefedov and Márcio Almada
+
 Previous RFC for callable types with inline definitions only:
 https://wiki.php.net/rfc/callable-types
 
