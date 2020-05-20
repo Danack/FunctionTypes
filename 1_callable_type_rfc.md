@@ -91,7 +91,7 @@ For all callables, the parameters are checked with contravariance (aka type wide
 
 ```
 // Define a callable type
-typdef foo = callable(int $value): void;
+typedef foo = callable(int $value): void;
 
 // Use that type 
 function uses_foo(foo $fn) {...}
