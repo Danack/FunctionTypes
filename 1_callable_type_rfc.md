@@ -354,3 +354,12 @@ Which is too verbose.
 
 
 ## Fin
+
+
+### Notes
+
+Previous RFC for callable types with inline definitions only:
+https://wiki.php.net/rfc/callable-types
+
+Pull-request
+https://github.com/php/php-src/pull/1633

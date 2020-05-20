@@ -194,7 +194,7 @@ new foo();
 
 This RFC proposes to strip the current //spl_autoload_register// functionality, and make //spl_autoload_*// simple proxies for registering core autoloaders. They will function exactly as they do now, but under the hood they will be using the new interface.
 
-This means that calls to //spl_autoload_functions()// will include any autoloader (which indicates support for //php\AUTOLOAD_TYPE//) registered through //php\autoload_register()//. However, all autoloaders registered via //spl_autoload_register// will set the //pass_type// flag to //0//, meaning that only a single argument will be passed to the callback. This is for compatiblity.
+This means that calls to //spl_autoload_functions()// will include any autoloader (which indicates support for //php\AUTOLOAD_TYPE  //) registered through //php\autoload_register()//. However, all autoloaders registered via //spl_autoload_register// will set the //pass_type// flag to //0//, meaning that only a single argument will be passed to the callback. This is for compatiblity.
 
 
 ### C API Backwards Compatibility 
@@ -300,3 +300,9 @@ A patch will be created shortly
 ## Vote 
 
 
+
+Previous RFC for function autoloading:
+https://wiki.php.net/rfc/function_autoloading
+
+Pull-request:
+https://github.com/ircmaxell/php-src/tree/function-autoloading-7
