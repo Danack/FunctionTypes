@@ -2,7 +2,7 @@
 
   * Version: 0.5
   * Date: 2020-05-09
-  * Author: Danack
+  * Author: Danack, based on work Anthony Ferrara
   * Status: Draft
   * First Published at: 
 
@@ -165,38 +165,28 @@ By passing a bitwise-or'd constant to the register function, the callback will o
 php\autoload_register(function($name, $type) {
     var_dump($name, $type);
     switch ($type) {
-       case php\AUTOLOAD_FUNCTION:
-           eval("function $name(){}");
-           break;
-       case php\AUTOLOAD_CONSTANT:
-           define($name, $name);
-           break;
+        case php\AUTOLOAD_FUNCTION:
+            eval("function $name(){}");
+            break;
+        case php\AUTOLOAD_TYPE:
+            $code = <<< CODE
+            class $name
+                {
+                    public function __construct()
+                    {
+                        echo "class $name was created";
+                    } 
+                }
+CODE;
+            eval($code);
+            break;
     }
-}, php\AUTOLOAD_FUNCTION | php\AUTOLOAD_CONSTANT);
+}, php\AUTOLOAD_FUNCTION | php\AUTOLOAD_TYPE);
 foo(); // string(3) "foo" int(2)
-FOO; // string(3) "FOO" int(4)
-new foo(); // FATAL_ERROR as no autoloader is registered
+new foo();
 ?>
 </file>
 
-#### Registering The Same Callback Multiple Times For Different Types 
-
-<file php multiple_registration.php>
-<?php
-$callback = function($name, $type) {
-    var_dump($name);
-    if ($name === 'foo') {
-        eval("function $name(){}");
-    } else {
-        define($name, $name);
-    }
-};
-php\autoload_register($callback, php\AUTOLOAD_FUNCTION);
-php\autoload_register($callback, php\AUTOLOAD_CONSTANT);
-foo(); // string(3) "foo" int(2)
-FOO; // string(3) "FOO", "FOO"
-?>
-</file>
 
 ### Userland Backwards Compatibility 
 
@@ -204,11 +194,8 @@ FOO; // string(3) "FOO", "FOO"
 
 This RFC proposes to strip the current //spl_autoload_register// functionality, and make //spl_autoload_*// simple proxies for registering core autoloaders. They will function exactly as they do now, but under the hood they will be using the new interface.
 
-This means that calls to //spl_autoload_functions()// will include any autoloader (which indicates support for //php\AUTOLOAD_CLASS//) registered through //php\autoload_register()//. However, all autoloaders registered via //spl_autoload_register// will set the //pass_type// flag to //0//, meaning that only a single argument will be passed to the callback. This is for compatiblity.
+This means that calls to //spl_autoload_functions()// will include any autoloader (which indicates support for //php\AUTOLOAD_TYPE//) registered through //php\autoload_register()//. However, all autoloaders registered via //spl_autoload_register// will set the //pass_type// flag to //0//, meaning that only a single argument will be passed to the callback. This is for compatiblity.
 
-#### __autoload() 
-
-The legacy //__autoload()// function still works (only for classes) if no autoloader has been registered. If any autoloader is registered (class, function or constant), the legacy system will disable itself (this is how it works currently).
 
 ### C API Backwards Compatibility 
 
@@ -244,7 +231,7 @@ A quick scan of LXR shows that no extensions use this.
 
 ## Proposed PHP Version(s) 
 
-PHP 7.1.x
+PHP 8.0
 
 ## SAPIs Impacted 
 
@@ -273,7 +260,6 @@ Although it would be possible to add constant autoloading, the position of this 
 
 If we added constant autoloading now, that would have a very high chance of limiting the choices surrounding being able to reference functions. Because of that, this RFC does not include constant autoloading.
 
-
 ### Stream autoloading
 
 Stream autoloading is excluded from this RFC to reduce the size of the RFC. It would be possible to add it in a later version.
@@ -296,7 +282,6 @@ foo(Compass::East);
 ```
 
 This should be possible to add to the type autoloading.
-
 
 
 ## Patches and Tests 

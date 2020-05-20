@@ -3,7 +3,9 @@
 
 The problem of defining callable signatures has been a requested feature for a while. This proposal introduces the definition of callable types, to separate the problem of defining function signatures from how they are used.
 
-## Allow definition of a callable type
+## Proposal
+
+### Allow definition of a callable type
 
 ```
 typedef logger = callable(string $message): void;
@@ -25,6 +27,23 @@ To make the rest of the RFC clearer:
 * 'callable type' - the definition of the signature. This is analogous to an interface.
 * 'callable' - the function, closure, or class+method that implements the callable type.
 
+
+### Inline callable types
+
+Additionally, this RFC proposes inline declarations of callable types.
+
+```
+function foo(callable(int $carry, int $item):int $reducer) {
+
+    $values = [1, 2, 3];
+    $carry = 0;
+
+    foreach ($values as $value) {
+        $carry = $reducer($carry, $value);
+    }
+}
+
+```
 
 ## Type checking
 
@@ -203,7 +222,6 @@ uses_consumes_int(5, wraps_consumes_int_and_returns_int($widerClosure));
 // an array is not an acceptable parameter.
 uses_consumes_int([], wraps_consumes_int_and_returns_int($widerClosure));
 
-
 ```
 
 Doing it the other way, and using the allowed parameter types of the callable type would lead to a confusing error message, as it wouldn't match the callable that is actually being used.
@@ -215,19 +233,6 @@ Yes/No
 
 ## Future scope
 
-### Inline type definition
-
-Some people have suggested allowing inline declarations of callable types.
-
-```
-function foo(callable(int|string $a):int|string $b) {
-    $b("This was called");
-}
-
-```
-
-the position of this RFC is that types defined with names are the most valuable thing to provide, and as this RFC is big enough already, the inline type definitions should be done at a later date.  
- 
 ### Variance in inheritance of methods with callable parameters
 
 This RFC proposes no variance in the signature of parameter types when used in methods of classes.
@@ -248,8 +253,27 @@ class B extends A {
 }
 ```
 
-The implementation of variance in the callable during method inheritance outside the scope of this RFC as it needs more careful consideration.
+The implementation of variance in the callable during method inheritance outside the scope of this RFC as it needs more careful consideration of the exact details of how it should work.
 
+### Dropping parameter name
+
+A suggestion was made of being able to drop the parameter name in the callable definition.
+
+```
+// named type
+typedef logger = callable(string): void;
+
+
+// Or inline type
+function foo(callable(string) $logger) 
+
+```
+
+The position of this RFC is that dropping the parameter name is out of scope for this RFC.
+
+It would need to be considered fully under a separate RFC that thinks through where dropping the parameter name was acceptable (e.g. interface, abstract methods?) rather than adding a special case for just callable types.
+
+Additionally, allowing the parameter name to be dropped now, might make a 'named parameters' RFC be much harder to implement later, which this RFC aims to avoid.
 
 ## Notes
 
@@ -258,34 +282,47 @@ The implementation of variance in the callable during method inheritance outside
 The syntax chosen is designed to be reusable for other potential features e.g. 
 
 
-Enum types
+#### Enum types
 ```
 typedef direction = enum('North', 'South', 'East', 'West');
 ```
 
-Union types
+#### Union types
 ```
 typedef ExpectedExceptions = S3Exception|ImagickException|BadArgumentException;
 ```
 
-Generic like definitions
+#### Generic definitions
 ```
 typedef ArrayOfStrings =  array<string>;
 ```
 
-### 'property vs method'
+### Why both inline and defined types
 
-Fixing the problem of properties and methods being confusable, i.e. requiring ()'s for this:
+Both of them allow the same thing, of defining the signature of a callable type to for a parameter, return or property type, each of those will be more useful in specific situations.
+
+#### Named typedef 
+
+These are more useful when a callable type is defined in a library and then that definition is used either in another library or in the main application code. By giving the callable type a name, you can search for usage of it across a codebase easily. Additionally named typedefs can support nesting of callables.
 
 ```
-class Foo {
-    function bar() {
-      ($this->logger)("Bar was called.")
-    }
-}
+// Define a callable that returns an int
+typedef foo = callable(): int;
+
+// Define a callable that returns a callable that returns int
+typedef bar = callable(): foo;
+
 ```
 
-is ugly. But fixing that is outside the scope of this RFC, unless someone can say a clearly genius solution.
+#### Inline type
+
+These are more useful when you have a callable type that is used more 'locally' and isn't a concept that is passed around different layers of an application. 
+
+An example could be in the eventloop of Amphp.
+
+```
+function repeat(int $intervalMs, callable(Watcher $watcher): ?\Generator $callback)
+```
 
 
 ## No implements
@@ -317,9 +354,3 @@ Which is too verbose.
 
 
 ## Fin
-
-
-
-
-
-
