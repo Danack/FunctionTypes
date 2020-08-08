@@ -8,7 +8,7 @@ The problem of defining callable signatures has been a requested feature for a w
 ### Allow definition of a callable type
 
 ```
-typedef logger = callable(string $message): void;
+type logger = callable(string $message): void;
 ```
 
 This can be used a parameter, return or property type.
@@ -50,7 +50,7 @@ function foo(callable(int $carry, int $item):int $reducer) {
 The type checking is done solely through the signature of the callable type. The function name is not required to be the same and functions do not need to declare what callable type they 'implement'.
 
 ```
-typedef logger = callable(string $message): void;
+type logger = callable(string $message): void;
 
 function foo(logger $logger) {
     $logger("This was called");
@@ -91,7 +91,7 @@ For all callables, the parameters are checked with contravariance (aka type wide
 
 ```
 // Define a callable type
-typedef foo = callable(int $value): void;
+type foo = callable(int $value): void;
 
 // Use that type 
 function uses_foo(foo $fn) {...}
@@ -145,7 +145,7 @@ For callables that do not have a return type defined, the function is dispatched
 
 ```
 // Define a callable type that must return int
-typedef consumes_string_returns_int = callable(string $x): int
+type consumes_string_returns_int = callable(string $x): int
 
 $returnStringClosure = fn(string $x) => 5;
 
@@ -169,7 +169,7 @@ The purpose of the wrapping function is to make the return type check happen in 
 
 ```
 // Define a callable type that must return int
-typedef returns_int = callable(): int
+type returns_int = callable(): int
 
 $returnStringClosure = fn() => "foo";
 
@@ -195,7 +195,7 @@ The type check on the parameters uses the allowed parameters of the callable bei
 
 ```
 // Define a callable type
-typedef consumes_int = callable(int $x): int;
+type consumes_int = callable(int $x): int;
 
 // Define a closure that accepts int or string
 $widerClosure = function(int|string $value): int {
@@ -240,8 +240,8 @@ This RFC proposes no variance in the signature of parameter types when used in m
 It would theoretically be possible to allow variance by narrowing the parameters of the callable and widening of the callable return type:
 
 ```
-typedef fn_1 = callable(int|string $a):int|string;
-typedef fn_2 = callable(string $a):string|int|float;
+type fn_1 = callable(int|string $a):int|string;
+type fn_2 = callable(string $a):string|int|float;
 
 class A
 {
@@ -261,7 +261,7 @@ A suggestion was made of being able to drop the parameter name in the callable d
 
 ```
 // named type
-typedef logger = callable(string): void;
+type logger = callable(string): void;
 
 
 // Or inline type
@@ -284,33 +284,33 @@ The syntax chosen is designed to be reusable for other potential features e.g.
 
 #### Enum types
 ```
-typedef direction = enum('North', 'South', 'East', 'West');
+type direction = enum('North', 'South', 'East', 'West');
 ```
 
 #### Union types
 ```
-typedef ExpectedExceptions = S3Exception|ImagickException|BadArgumentException;
+type ExpectedExceptions = S3Exception|ImagickException|BadArgumentException;
 ```
 
 #### Generic definitions
 ```
-typedef ArrayOfStrings =  array<string>;
+type ArrayOfStrings =  array<string>;
 ```
 
 ### Why both inline and defined types
 
 Both of them allow the same thing, of defining the signature of a callable type to for a parameter, return or property type, each of those will be more useful in specific situations.
 
-#### Named typedef 
+#### Named type
 
-These are more useful when a callable type is defined in a library and then that definition is used either in another library or in the main application code. By giving the callable type a name, you can search for usage of it across a codebase easily. Additionally named typedefs can support nesting of callables.
+These are more useful when a callable type is defined in a library and then that definition is used either in another library or in the main application code. By giving the callable type a name, you can search for usage of it across a codebase easily. Additionally named types can support nesting of callables.
 
 ```
 // Define a callable that returns an int
-typedef foo = callable(): int;
+type foo = callable(): int;
 
 // Define a callable that returns a callable that returns int
-typedef bar = callable(): foo;
+type bar = callable(): foo;
 
 ```
 
@@ -334,7 +334,7 @@ e.g.
 ```
 
 // I have this definition:
-typedef logger = callable(string $message): void;
+type logger = callable(string $message): void;
 
 
 // And this function:
