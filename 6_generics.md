@@ -1,10 +1,9 @@
+# Generics
 
+1. Make the appropriate changes to allow this code to compile.
 
-Step 1) Make the appropriate changes to allow this code to compile.
+i.e. support for using template parameters in class definitions.
 
-support for using template parameters in class definitions.
-
-i.e.
 
 ```php
 <?php
@@ -39,7 +38,7 @@ Do whatever work is needed to allow the classname to be followed by `Entry<KeyTy
 However this code wouldn't be runnable. If the VM ever tries to execute a T_TEMPLATE it just dies with fatal error.
 
 
-Step 2) Add support for autoloading generics
+2. Add support for autoloading generics
 
 The users would have to register a function:
 
@@ -60,7 +59,7 @@ autoload_register_generic('generic_autoloader');
 
 We could/should cache the values so that each generic template is only called once max for each combination of template parameter/ 
 
-Step 4) Do the work to make the following compile
+3. Do the work to make the following compile
 
 ```
 <?php
