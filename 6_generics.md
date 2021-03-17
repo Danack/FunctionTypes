@@ -83,3 +83,5 @@ After the AST is modified and the function exits, the engine then does a quick c
 After that compile the generated code as normal.
 
 Most programmers aren't going to be up to writing their own generic autoloader code....so most people will just use a composer or other library provided one. 
+
+Or is that all not the difficult part that needs solving?
